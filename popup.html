@@ -26,16 +26,17 @@
       -
       - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
      -->
-    <script src="popup.js"></script>
+    <script src="jquery.js"></script>
+	<script src="popup.js"></script>
   </head>
   <body style="height:100%">
 
-	<p id="formOut">Default Value</p>
+	<p>Force Focus</p>
 	<form autocomplete="off" id="form1">
 		Enter website: <input type="text" name="fname" id="formInput">
-		<input type="button" id="submitButton">
+		<input type="button" id="submitButton" text="submit"></input>
 	</form>
-	<div id="status"></div>
+	<ul id="formOut"></ul>
   
   </body>
 </html>

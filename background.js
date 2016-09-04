@@ -1,7 +1,3 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 /**
  * Get the current URL.
  *
@@ -47,73 +43,25 @@ function getCurrentTabUrl(callback) {
   // alert(url); // Shows "undefined", because chrome.tabs.query is async.
 }
 
-function renderStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
-}
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
 
-
-document.addEventListener('DOMContentLoaded', function() {
+getCurrentTabUrl(function(url) {
+	console.log(url);		
 	
-	//chrome.storage.sync.clear();
-	document.getElementById("submitButton").addEventListener('click', addRow);
-	displayRows();	
-});
-
-
-function addRow() {
-	
-	var tempValue = document.getElementById('formInput').value;
-	
-	if(tempValue == '') {
-		return;
-	}
-
-	var tempStore = {
-		"name": tempValue,
-		"html": '<li id=' + tempValue + ' class=deletebut style="list-style: none; float:left">' + tempValue+ '</li>'
-	}
-	
-
 	chrome.storage.sync.get("array", function(e) {
-		if(e.array) {
-			e.array.push(tempStore);
-		} else {
-			e.array = [];
-			e.array.push(tempStore);
-		}
-		
-		chrome.storage.sync.set({"array": e.array});
-	}
-	);
-}
-
-chrome.storage.onChanged.addListener(displayRows);
-			
-
-function displayRows() {
-	chrome.storage.sync.get("array", function(e) {
-		
-		$("#formOut").empty();
-
-		for(i=0; i < e.array.length; i++) {
-			$("#formOut").append(e.array[i].html);
-			
-			var searchString = '#' + e.array[i].name;
-			$('.deletebut').click(function(event) {
-				chrome.storage.sync.get("array", function(e) {
-					for(i=0; i < e.array.length; i++) {
-						if(e.array[i].name == event.target.id) {
-							e.array.splice(i, 1);
-						}
-					}
-					
-					chrome.storage.sync.set({"array": e.array});
-				
+		for(i = 0; i < e.array.length; i++) {
+			console.log(e.array[i]);	
+			if(url.includes(e.array[i].name)) {
+				console.log("block");
+				chrome.tabs.query({active: true, currentWindow:true}, function(e) {
+					console.log(e[0]);
+					chrome.tabs.remove(e[0].id);
 				});
-				
-			});
-		
+			}
 		}
-
 	});
-}
+});
+  });
+
+
