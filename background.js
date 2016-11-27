@@ -1,3 +1,11 @@
+// 
+// Name: Rohan Bhargava 
+// Date: 8/29/16
+// File name: background.js
+// Description: Main script runs in the background and when a new tab is opened
+//checks it against the database of blocked tabs and then deletes it 
+//
+
 /**
  * Get the current URL.
  *
@@ -43,17 +51,22 @@ function getCurrentTabUrl(callback) {
   // alert(url); // Shows "undefined", because chrome.tabs.query is async.
 }
 
+//this script only runs when a tab content changes  and sends it a message 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
 
+//get the url of the current tab and check to see if it should be blocked
 getCurrentTabUrl(function(url) {
 	console.log(url);		
 	
+	//get the array from chrome storage
 	chrome.storage.sync.get("array", function(e) {
+		//check if the current url is in the blocked array 
 		for(i = 0; i < e.array.length; i++) {
 			console.log(e.array[i]);	
 			if(url.includes(e.array[i].name)) {
 				console.log("block");
+				//if it is blocked then close that tab
 				chrome.tabs.query({active: true, currentWindow:true}, function(e) {
 					console.log(e[0]);
 					chrome.tabs.remove(e[0].id);
@@ -62,6 +75,6 @@ getCurrentTabUrl(function(url) {
 		}
 	});
 });
-  });
+});
 
 

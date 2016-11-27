@@ -1,103 +1,74 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// 
+// Name: Rohan Bhargava 
+// Date: 8/29/16
+// File name: popup.js
+// Description: Takes care of all javascript for the popup displayed
+//
 
-/**
- * Get the current URL.
- *
- * @param {function(string)} callback - called when the URL of the current tab
- *   is found.
- */
-function getCurrentTabUrl(callback) {
-  // Query filter to be passed to chrome.tabs.query - see
-  // https://developer.chrome.com/extensions/tabs#method-query
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
-
-  chrome.tabs.query(queryInfo, function(tabs) {
-    // chrome.tabs.query invokes the callback with a list of tabs that match the
-    // query. When the popup is opened, there is certainly a window and at least
-    // one tab, so we can safely assume that |tabs| is a non-empty array.
-    // A window can only have one active tab at a time, so the array consists of
-    // exactly one tab.
-    var tab = tabs[0];
-
-    // A tab is a plain object that provides information about the tab.
-    // See https://developer.chrome.com/extensions/tabs#type-Tab
-    var url = tab.url;
-
-    // tab.url is only available if the "activeTab" permission is declared.
-    // If you want to see the URL of other tabs (e.g. after removing active:true
-    // from |queryInfo|), then the "tabs" permission is required to see their
-    // "url" properties.
-    console.assert(typeof url == 'string', 'tab.url should be a string');
-
-    callback(url);
-  });
-
-  // Most methods of the Chrome extension APIs are asynchronous. This means that
-  // you CANNOT do something like this:
-  //
-  // var url;
-  // chrome.tabs.query(queryInfo, function(tabs) {
-  //   url = tabs[0].url;
-  // });
-  // alert(url); // Shows "undefined", because chrome.tabs.query is async.
-}
-
-function renderStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
-}
-
-
+/*
+Runs code after all dom content has been loaded
+*/
 document.addEventListener('DOMContentLoaded', function() {
 	
-	//chrome.storage.sync.clear();
+	chrome.storage.sync.clear();
+	
+	//add add row event to button click 
 	document.getElementById("submitButton").addEventListener('click', addRow);
+	
+	//display old rows if any 
 	displayRows();	
 });
 
-
+/*
+Function that adds rows with all the appropriate listeners 
+*/
 function addRow() {
 	
+	//the website to block
 	var tempValue = document.getElementById('formInput').value;
 	
+	//if nothing is entered then do nothing 
 	if(tempValue == '') {
 		return;
 	}
-
+	
+	//json object to store 
 	var tempStore = {
 		"name": tempValue,
 		"html": '<li id=' + tempValue + ' class=deletebut style="list-style: none; float:left">' + tempValue+ '</li>'
 	}
 	
-
+	
+	//store the value of the url to block in the array 
 	chrome.storage.sync.get("array", function(e) {
 		if(e.array) {
 			e.array.push(tempStore);
 		} else {
+			//create the array if it is not made 
 			e.array = [];
 			e.array.push(tempStore);
 		}
 		
+		//sync the array in the chrome storage
 		chrome.storage.sync.set({"array": e.array});
 	}
 	);
 }
 
+//every time chrome storage changes call the row update function
 chrome.storage.onChanged.addListener(displayRows);
 			
-
+//this function displays the rows of data 
 function displayRows() {
 	chrome.storage.sync.get("array", function(e) {
 		
 		$("#formOut").empty();
-
+		
+		//append each row to the form object
 		for(i=0; i < e.array.length; i++) {
 			$("#formOut").append(e.array[i].html);
 			
+			//if the delete button is pressed, remove from the array
 			var searchString = '#' + e.array[i].name;
 			$('.deletebut').click(function(event) {
 				chrome.storage.sync.get("array", function(e) {
@@ -107,6 +78,7 @@ function displayRows() {
 						}
 					}
 					
+					//sync updated array with chrome storage
 					chrome.storage.sync.set({"array": e.array});
 				
 				});
